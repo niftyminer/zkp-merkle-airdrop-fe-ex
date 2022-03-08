@@ -109,7 +109,7 @@ export default function IndexPage() {
                 <div className="input-group mt-2">
                   <div className="input-group-prepend">
                     <div className="input-group-text">
-                     Secret 
+                     Secret
                     </div>
                   </div>
                   <input
@@ -138,14 +138,14 @@ export default function IndexPage() {
 
               </div>
 
-              <div className="card-footer"> 
+              <div className="card-footer">
                 <button className="btn btn-primary" onClick={handleCalcProof}>Calculate Proof</button>
                 <button className="btn btn-warning ml-2" onClick={handleCollect}>Collect Drop</button>
               </div>
             </div>
           </div>
 
-          {state.loading? 
+          {state.loading?
             <div className="spinner-border m-5" role="status">
               {/* <span className="sr-only">Loading...</span> */}
             </div>
@@ -162,7 +162,7 @@ export default function IndexPage() {
               {state.proof === ''?
                 <div>
                   No proof calculated
-                </div> 
+                </div>
               :
                 <div>
                   {state.proof}
@@ -197,20 +197,26 @@ async function calculateProof(key, secret, state, setState) {
 
   // Load files and run proof locally
   let DOMAIN = "http://localhost:3000";
-  let mtSs = await getFileString(`${DOMAIN}/mt_8192.txt`);
+  let mtSs = await getFileString(`${DOMAIN}/mt_256.txt`);
   let wasmBuff = await getFileBuffer(`${DOMAIN}/circuit.wasm`);
   let zkeyBuff = await getFileBuffer(`${DOMAIN}/circuit_final.zkey`);
 
   // Load the Merkle Tree locally
+  console.log("1")
   let mt = MerkleTree.createFromStorageString(mtSs);
+  console.log("2")
   if (!mt.leafExists(BigInt(computedCommitment))) {
+    console.log("3")
     alert("Leaf corresponding to (key,secret) does not exist in MerkleTree.");
     setState({...state, loading:false})
     return;
   }
-  
+
+  console.log("4")
   let preTime = new Date().getTime();
+  console.log("mt", mt, "BigInt(key)", BigInt(key), "BigInt(secret)",BigInt(secret), "address",address, "wasmBuff", wasmBuff, "zkeyBuff",zkeyBuff )
   let proof = await generateProofCallData(mt, BigInt(key), BigInt(secret), address, wasmBuff, zkeyBuff);
+  console.log("5")
   let elapsed =  new Date().getTime() - preTime;
   console.log(`Time to compute proof: ${elapsed}ms`);
 
@@ -266,7 +272,7 @@ async function transferLocalHostEth(state, setState) {
   let walletProvider = new providers.Web3Provider(window.ethereum);
   await walletProvider.send('eth_requestAccounts', []);
   let walletAddress = await walletProvider.getSigner().getAddress()
-  
+
   let hardhatWallet = new ethers.Wallet(HARDHAT_DEFAULT_PK, walletProvider)
   let value = BigNumber.from(10).pow(BigNumber.from(18))
   let tx = await hardhatWallet.sendTransaction({value: value, to: walletAddress})
